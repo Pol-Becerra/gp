@@ -190,7 +190,7 @@ export default function CategoriesPage() {
                 </button>
             </div>
 
-            <div className="flex gap-4 items-center">
+            <div className="flex flex-col md:flex-row gap-4 md:items-center">
                 <div className="flex-1 relative">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
                     <input
@@ -203,7 +203,7 @@ export default function CategoriesPage() {
                 </div>
                 <button
                     onClick={() => setShowOnlyMain(!showOnlyMain)}
-                    className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all ${showOnlyMain
+                    className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border transition-all ${showOnlyMain
                         ? 'bg-blue-600/20 border-blue-500 text-blue-400'
                         : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20'
                         }`}
@@ -222,8 +222,8 @@ export default function CategoriesPage() {
                 </button>
             </div>
 
-            <div className="glass rounded-3xl overflow-hidden border border-white/5">
-                <table className="w-full text-left border-collapse">
+            <div className="glass rounded-3xl overflow-hidden border border-white/5 overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-[800px]">
                     <thead>
                         <tr className="bg-white/5 text-gray-400 text-xs font-bold uppercase tracking-widest">
                             <th className="px-6 py-4">Categoría</th>

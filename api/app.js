@@ -12,6 +12,9 @@ const { CRMService } = require('../services/crm');
 const { CategoryService } = require('../services/crm/categories');
 const { TaskService } = require('../services/task-management');
 const { AreaService } = require('../services/task-management/areas');
+const { AuthService } = require('../services/auth');
+const { UserService } = require('../services/users');
+const { authenticateToken, authorizeRoles } = require('./middleware/auth');
 const db = require('./db');
 
 const app = express();
@@ -24,6 +27,8 @@ const crm = new CRMService();
 const categories = new CategoryService();
 const tasks = new TaskService();
 const areas = new AreaService();
+const auth = new AuthService();
+const users = new UserService();
 
 // Middleware
 // Middleware d
@@ -49,6 +54,72 @@ app.get('/', (req, res) => {
 
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// =============================================
+// AUTHENTICATION & USERS
+// =============================================
+
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) return res.status(400).json({ error: 'Email y contraseña requeridos' });
+        const result = await auth.login(email, password);
+        res.json(result);
+    } catch (err) {
+        res.status(401).json({ error: err.message });
+    }
+});
+
+app.get('/api/auth/me', authenticateToken, (req, res) => {
+    res.json(req.user);
+});
+
+// User Management (Protected)
+app.get('/api/users', authenticateToken, authorizeRoles('super_admin', 'admin'), async (req, res) => {
+    try {
+        const userList = await users.getAllUsers();
+        res.json(userList);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/users/:id', authenticateToken, authorizeRoles('super_admin', 'admin'), async (req, res) => {
+    try {
+        const user = await users.getUserById(req.params.id);
+        if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+        res.json(user);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/users', authenticateToken, authorizeRoles('super_admin', 'admin'), async (req, res) => {
+    try {
+        const newUser = await users.createUser(req.body);
+        res.status(201).json(newUser);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+app.put('/api/users/:id', authenticateToken, authorizeRoles('super_admin', 'admin'), async (req, res) => {
+    try {
+        const updated = await users.updateUser(req.params.id, req.body);
+        res.json(updated);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/users/:id', authenticateToken, authorizeRoles('super_admin', 'admin'), async (req, res) => {
+    try {
+        const result = await users.deleteUser(req.params.id);
+        res.json({ message: 'Usuario eliminado', id: result.id });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // APIs para Entidades
