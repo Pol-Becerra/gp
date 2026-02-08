@@ -85,6 +85,13 @@ export default function CategoriesPage() {
         }
     };
 
+    // Helper function to get parent category name
+    const getParentName = (parentId: string | null) => {
+        if (!parentId) return null;
+        const parent = categories.find(c => c.id === parentId);
+        return parent?.nombre || null;
+    };
+
     const filteredCategories = categories.filter(c =>
         c.nombre.toLowerCase().includes(search.toLowerCase()) ||
         c.slug.toLowerCase().includes(search.toLowerCase())
@@ -127,26 +134,28 @@ export default function CategoriesPage() {
                     <thead>
                         <tr className="bg-white/5 text-gray-400 text-xs font-bold uppercase tracking-widest">
                             <th className="px-6 py-4">Categoría</th>
+                            <th className="px-6 py-4">Jerarquía</th>
                             <th className="px-6 py-4">Slug</th>
                             <th className="px-6 py-4">Color</th>
-                            <th className="px-6 py-4">Descripción</th>
                             <th className="px-6 py-4 text-right">Acciones</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
                         {loading ? (
                             <tr>
-                                <td colSpan={4} className="px-6 py-10 text-center text-gray-500">
+                                <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
                                     Cargando categorías...
                                 </td>
                             </tr>
                         ) : filteredCategories.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="px-6 py-10 text-center text-gray-500">
+                                <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
                                     No se encontraron categorías
                                 </td>
                             </tr>
-                        ) : filteredCategories.map((category, i) => (
+                        ) : filteredCategories.map((category, i) => {
+                            const parentName = getParentName(category.parent_id);
+                            return (
                             <motion.tr
                                 key={category.id}
                                 initial={{ opacity: 0, y: 10 }}
@@ -155,7 +164,7 @@ export default function CategoriesPage() {
                                 className="hover:bg-white/[0.02] transition-colors group"
                             >
                                 <td className="px-6 py-5">
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3" style={{ paddingLeft: `${(category.nivel_profundidad || 0) * 20}px` }}>
                                         <div
                                             className="w-10 h-10 rounded-lg flex items-center justify-center text-lg"
                                             style={{ backgroundColor: `${category.color_hex}15`, color: category.color_hex }}
@@ -168,13 +177,18 @@ export default function CategoriesPage() {
                                         </div>
                                         <div>
                                             <div className="font-semibold">{category.nombre}</div>
-                                            {category.parent_id && (
-                                                <div className="text-[10px] text-gray-500 flex items-center gap-1">
-                                                    <FolderTree size={10} /> Subcategoría
-                                                </div>
-                                            )}
                                         </div>
                                     </div>
+                                </td>
+                                <td className="px-6 py-5">
+                                    {parentName ? (
+                                        <div className="flex items-center gap-2 text-sm">
+                                            <FolderTree size={14} className="text-blue-400" />
+                                            <span className="text-gray-400">{parentName}</span>
+                                        </div>
+                                    ) : (
+                                        <span className="text-xs text-gray-600 bg-gray-800/50 px-2 py-1 rounded">Principal</span>
+                                    )}
                                 </td>
                                 <td className="px-6 py-5 text-sm font-mono text-gray-400">
                                     {category.slug}
@@ -185,9 +199,6 @@ export default function CategoriesPage() {
                                         style={{ backgroundColor: category.color_hex || '#3b82f6' }}
                                         title={category.color_hex || '#3b82f6'}
                                     />
-                                </td>
-                                <td className="px-6 py-5 text-sm text-gray-500 max-w-xs truncate">
-                                    {category.descripcion || '-'}
                                 </td>
                                 <td className="px-6 py-5 text-right">
                                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -211,7 +222,8 @@ export default function CategoriesPage() {
                                     </div>
                                 </td>
                             </motion.tr>
-                        ))}
+                        )}
+                    )}
                     </tbody>
                 </table>
             </div>
@@ -221,6 +233,7 @@ export default function CategoriesPage() {
                 onClose={() => setIsDialogOpen(false)}
                 onSave={handleSave}
                 category={editingCategory}
+                availableCategories={categories}
             />
         </div>
     );

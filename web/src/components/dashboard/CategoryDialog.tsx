@@ -18,9 +18,10 @@ interface CategoryDialogProps {
     onClose: () => void;
     onSave: (data: Partial<Category>) => void;
     category?: Category | null;
+    availableCategories?: Category[];
 }
 
-export function CategoryDialog({ isOpen, onClose, onSave, category }: CategoryDialogProps) {
+export function CategoryDialog({ isOpen, onClose, onSave, category, availableCategories = [] }: CategoryDialogProps) {
     const [formData, setFormData] = React.useState<Partial<Category>>({
         nombre: '',
         slug: '',
@@ -93,6 +94,27 @@ export function CategoryDialog({ isOpen, onClose, onSave, category }: CategoryDi
                             onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500/50 transition-colors h-24 resize-none"
                         />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-400">Categoría Padre</label>
+                        <select
+                            value={formData.parent_id || ''}
+                            onChange={(e) => setFormData({ ...formData, parent_id: e.target.value || null })}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500/50 transition-colors text-gray-300"
+                        >
+                            <option value="" className="bg-[#111]">Sin categoría padre (Categoría principal)</option>
+                            {availableCategories
+                                .filter(cat => cat.id !== category?.id)
+                                .map(cat => (
+                                    <option key={cat.id} value={cat.id} className="bg-[#111]">
+                                        {cat.nombre}
+                                    </option>
+                                ))}
+                        </select>
+                        <p className="text-xs text-gray-500">
+                            Selecciona una categoría padre para crear una subcategoría
+                        </p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
