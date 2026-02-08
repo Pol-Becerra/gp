@@ -137,53 +137,81 @@ app.post('/api/scraper/run', async (req, res) => {
 
     console.log(`[API] Iniciando scraper para: ${category} en CP ${postalCode}`);
 
-    // Responder inmediatamente para no dejar colgado el frontend
-    res.json({
-        status: 'pending',
-        message: 'El scraper ha comenzado. Los resultados aparecerán en unos minutos.'
-    });
+    const stats = {
+        total: 0,
+        inserted: 0,
+        updated: 0,
+        errors: 0,
+        withPhone: 0,
+        withWeb: 0
+    };
 
-    // Ejecutar en background
-    (async () => {
-        const extractor = new GoogleMapsExtractor({ headless: true, maxResults: 40 });
-        try {
-            await extractor.init();
-            const results = await extractor.search(category, postalCode);
+    const extractor = new GoogleMapsExtractor({ headless: true, maxResults: 50 });
 
-            for (const item of results) {
-                const query = `
-                    INSERT INTO data_google_maps (
-                      nombre, google_maps_id, google_place_id, google_maps_url,
-                      rating, review_count, telefono, website, raw_info,
-                      etiqueta, search_category, search_postal_code, search_timestamp
-                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'nuevo', $10, $11, CURRENT_TIMESTAMP)
-                    ON CONFLICT (google_maps_id) DO UPDATE SET 
-                      rating = EXCLUDED.rating,
-                      review_count = EXCLUDED.review_count,
-                      telefono = COALESCE(EXCLUDED.telefono, data_google_maps.telefono),
-                      website = COALESCE(EXCLUDED.website, data_google_maps.website),
-                      google_maps_url = COALESCE(EXCLUDED.google_maps_url, data_google_maps.google_maps_url),
-                      raw_info = EXCLUDED.raw_info,
-                      updated_at = CURRENT_TIMESTAMP
-                `;
-                const values = [
-                    item.nombre, item.google_place_id || item.google_maps_url,
-                    item.google_place_id, item.google_maps_url,
-                    item.rating, item.review_count || 0,
-                    item.telefono, item.website, item.raw_info,
-                    category, postalCode
-                ];
-                await db.query(query, values);
-            }
-            console.log(`[API] ✅ Scraper finalizado con ${results.length} resultados.`);
-        } catch (err) {
-            console.error('[API] ❌ Error en proceso background del scraper:', err);
-        } finally {
+    try {
+        await extractor.init();
+        const results = await extractor.search(category, postalCode);
+        stats.total = results.length;
+
+        for (const item of results) {
             try {
-                await extractor.close();
-            } catch (e) { }
+                // Usar stored procedure para upsert
+                const query = `SELECT * FROM upsert_google_maps_data($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`;
+                const uniqueId = item.google_place_id || item.google_maps_url;
+
+                const values = [
+                    item.nombre,
+                    uniqueId,
+                    item.google_place_id,
+                    item.google_maps_url,
+                    item.rating,
+                    item.review_count || 0,
+                    item.telefono,
+                    item.website,
+                    item.raw_info,
+                    category,
+                    postalCode,
+                    'nuevo'
+                ];
+
+                const result = await db.query(query, values);
+                const { operation } = result.rows[0];
+
+                if (operation === 'INSERT') {
+                    stats.inserted++;
+                } else {
+                    stats.updated++;
+                }
+
+                if (item.telefono) stats.withPhone++;
+                if (item.website) stats.withWeb++;
+
+            } catch (dbErr) {
+                stats.errors++;
+                console.error(`[API] Error guardando ${item.nombre}: ${dbErr.message}`);
+            }
         }
-    })().catch(err => console.error('[API] Fatal background error:', err));
+
+        console.log(`[API] ✅ Scraper finalizado: ${stats.total} total, ${stats.inserted} nuevos, ${stats.updated} actualizados`);
+
+        res.json({
+            status: 'success',
+            message: `Extracción completada: ${stats.total} negocios procesados`,
+            stats
+        });
+
+    } catch (err) {
+        console.error('[API] ❌ Error en scraper:', err);
+        res.status(500).json({
+            status: 'error',
+            error: err.message,
+            stats
+        });
+    } finally {
+        try {
+            await extractor.close();
+        } catch (e) { }
+    }
 });
 
 // API para Data Google Maps (Cruda) - Mostrar solo nuevos
@@ -244,6 +272,22 @@ app.post('/api/raw-data/:id/approve', async (req, res) => {
         res.json({ success: true, entityId: newEntityId });
     } catch (err) {
         console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Limpiar tabla data_google_maps (DESARROLLO)
+app.delete('/api/raw-data/clean', async (req, res) => {
+    try {
+        const { rows } = await db.query('SELECT * FROM clean_data_google_maps(true)');
+        const result = rows[0];
+        res.json({
+            success: true,
+            deletedCount: result.deleted_count,
+            message: result.message
+        });
+    } catch (err) {
+        console.error('[API] Error al limpiar data_google_maps:', err);
         res.status(500).json({ error: err.message });
     }
 });
