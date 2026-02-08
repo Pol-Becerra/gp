@@ -18,6 +18,8 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 - **Base de Datos**: Procedimiento almacenado `clean_data_google_maps()` para vaciar todos los registros de la tabla data_google_maps (utilidad de desarrollo).
 - **API**: Nuevo endpoint `DELETE /api/raw-data/clean` para ejecutar la limpieza de la tabla.
 - **Frontend**: Añadido botón "Limpiar DGM" en la página de administración del scraper con modal de confirmación para limpieza de datos de desarrollo.
+- **Frontend**: Añadida columna visual de "Color" en el listado de categorías mostrando el color como círculo.
+- **Frontend**: Mejorado el selector de color en el modal de categorías con color picker visual en lugar de campo de texto hexadecimal.
 
 - **Extracción de Datos**: Refactorizado `services/data-extraction/index.js` para navegar directamente a la URL de cada negocio, eliminando condiciones de carrera y asegurando un 100% de precisión en los datos.
 - **Frontend**: Añadido un resumen detallado de extracción al modal del scraper, incluyendo conteos de registros nuevos/actualizados y métricas de calidad (porcentaje de teléfono/web).
