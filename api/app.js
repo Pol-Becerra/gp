@@ -126,26 +126,9 @@ app.delete('/api/users/:id', authenticateToken, authorizeRoles('super_admin', 'a
 app.get('/api/entities', async (req, res) => {
     try {
         const { has_web } = req.query;
-        let query = `
-            SELECT e.*, 
-            (SELECT url FROM sitios_web WHERE entidad_id = e.id AND es_principal = true LIMIT 1) as website
-            FROM entidades e
-        `;
+        const p_has_web = has_web === 'true' ? true : (has_web === 'false' ? false : null);
 
-        const conditions = [];
-        if (has_web === 'true') {
-            conditions.push(`EXISTS (SELECT 1 FROM sitios_web WHERE entidad_id = e.id)`);
-        } else if (has_web === 'false') {
-            conditions.push(`NOT EXISTS (SELECT 1 FROM sitios_web WHERE entidad_id = e.id)`);
-        }
-
-        if (conditions.length > 0) {
-            query += ` WHERE ` + conditions.join(' AND ');
-        }
-
-        query += ` ORDER BY e.fecha_creacion DESC LIMIT 50`;
-
-        const { rows } = await db.query(query);
+        const { rows } = await db.query('SELECT * FROM fn_crm_get_entities_filtered($1)', [p_has_web]);
         res.json(rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -286,7 +269,7 @@ app.delete('/api/tickets/:id', async (req, res) => {
 // Mantener endpoint legacy para compatibilidad
 app.get('/api/tasks', async (req, res) => {
     try {
-        const { rows } = await db.query('SELECT * FROM tasks_tickets ORDER BY created_at DESC');
+        const { rows } = await db.query('SELECT * FROM get_all_tickets(NULL, NULL, NULL, NULL, NULL, NULL, 100)');
         res.json(rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -465,7 +448,7 @@ app.post('/api/scraper/run', async (req, res) => {
 // API para Data Google Maps (Cruda) - Mostrar solo nuevos
 app.get('/api/raw-data', async (req, res) => {
     try {
-        const { rows } = await db.query("SELECT * FROM data_google_maps WHERE etiqueta = 'nuevo' ORDER BY created_at DESC LIMIT 100");
+        const { rows } = await db.query('SELECT * FROM fn_raw_data_get_pending()');
         res.json(rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -476,48 +459,14 @@ app.get('/api/raw-data', async (req, res) => {
 app.post('/api/raw-data/:id/approve', async (req, res) => {
     const { id } = req.params;
     try {
-        // 1. Obtener la data cruda
-        const rawRes = await db.query('SELECT * FROM data_google_maps WHERE id = $1', [id]);
-        if (rawRes.rows.length === 0) return res.status(404).json({ error: 'Registro no encontrado' });
+        const result = await db.query('SELECT * FROM fn_raw_data_approve_and_convert($1)', [id]);
+        const status = result.rows[0].fn_raw_data_approve_and_convert;
 
-        const raw = rawRes.rows[0];
-
-        // 2. Crear el slug
-        const slug = raw.nombre.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '') + '-' + id.substring(0, 4);
-
-        // 3. Insertar en entidades
-        const insertQuery = `
-            INSERT INTO entidades (nombre_legal, slug, validation_score, activa, fecha_creacion)
-            VALUES ($1, $2, $3, true, CURRENT_TIMESTAMP)
-            RETURNING id
-        `;
-        const entRes = await db.query(insertQuery, [raw.nombre, slug, raw.rating || 0]);
-        const newEntityId = entRes.rows[0].id;
-
-        // 3b. Insertar Teléfono si existe
-        if (raw.telefono) {
-            await db.query(`
-                INSERT INTO telefonos (entidad_id, numero, tipo_telefonico, validado, es_principal)
-                VALUES ($1, $2, 'fijo', true, true)
-            `, [newEntityId, raw.telefono]);
+        if (!status.success) {
+            return res.status(404).json({ error: status.error });
         }
 
-        // 3c. Insertar Sitio Web si existe
-        if (raw.website) {
-            await db.query(`
-                INSERT INTO sitios_web (entidad_id, url, validado, es_principal)
-                VALUES ($1, $2, true, true)
-            `, [newEntityId, raw.website]);
-        }
-
-        // 4. Marcar como procesado y vincular
-        await db.query(`
-            UPDATE data_google_maps 
-            SET etiqueta = 'procesado', matched_entidad_id = $1, processed_at = CURRENT_TIMESTAMP 
-            WHERE id = $2
-        `, [newEntityId, id]);
-
-        res.json({ success: true, entityId: newEntityId });
+        res.json({ success: true, entityId: status.entity_id });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });

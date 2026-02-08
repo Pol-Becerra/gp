@@ -9,6 +9,9 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Añadido
 
+- **Base de Datos**: Implementada refactorización masiva a Procedimientos Almacenados y Funciones PostgreSQL.
+- **Arquitectura**: Toda la persistencia ahora se maneja vía PL/pgSQL, eliminando SQL crudo del código JavaScript.
+- **Seguridad**: Reforzada la integridad de datos mediante validaciones a nivel de base de datos.
 - **Backend**: Implementado `AuthService` y `UserService` para la gestión de autenticación y usuarios.
 - **Seguridad**: Middleware de autenticación basado en JWT con control de acceso por roles (super_admin, admin, gestor).
 - **API**: Nuevos endpoints para Login (`/api/auth/login`), sesión actual (`/api/auth/me`) y CRUD completo de usuarios (`/api/users`).

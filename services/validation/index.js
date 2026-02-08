@@ -73,9 +73,8 @@ class EntityValidator {
     }
 
     async checkDuplicates(entity) {
-        const query = 'SELECT id FROM entidades WHERE nombre_legal = $1 OR cuit = $2 LIMIT 1';
-        const result = await db.query(query, [entity.nombre, entity.cuit]);
-        return result.rows.length === 0 ? 1 : 0;
+        const result = await db.query('SELECT fn_validation_check_duplicates($1, $2) as is_unique', [entity.nombre, entity.cuit]);
+        return result.rows[0]?.is_unique ? 1 : 0;
     }
 
     getStatus(score) {

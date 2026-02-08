@@ -66,3 +66,32 @@ Registro de peticiones y acciones realizadas por el asistente Antigravity.
 - [scripts/create-admin.js](file:///home/pol/Escritorio/gp/scripts/create-admin.js)
 - [CHANGELOG.md](file:///home/pol/Escritorio/gp/CHANGELOG.md)
 - [HISTORY.md](file:///home/pol/Escritorio/gp/HISTORY.md)
+
+---
+
+### [2026-02-08 17:55] - Refactorización a Stored Procedures (DB Persistence)
+
+**Petición del Usuario:**
+> "refactoriza todos los archivos que utilicen db.query y transformalos en procedimientos almacenados o funciones de PostgreSQL. Utiliza Postres-mcp y el agente db-persistence-agent.md"
+
+**Acciones Realizadas:**
+
+- Creada migración `007_refactor_to_procedures.sql` con funciones PL/pgSQL para Auth, Users, CRM, Categories, Raw Data y Analytics.
+- Implementada la función `fn_raw_data_approve_and_convert` que automatiza todo el flujo de aprobación en una sola transacción atómica de BD.
+- Refactorizado `AuthService` y `UserService` para eliminar SQL crudo.
+- Refactorizado `CRMService` y `CategoryService` para usar funciones con soporte JSONB para actualizaciones dinámicas.
+- Actualizados endpoints de `api/app.js` para simplificar la lógica delegándola en la base de datos.
+- Eliminados todos los `db.query` con SQL crudo cumpliendo con las directrices del `db-persistence-agent.md`.
+
+**Archivos Afectados:**
+
+- [migrations/007_refactor_to_procedures.sql](file:///home/pol/Escritorio/gp/migrations/007_refactor_to_procedures.sql)
+- [services/auth/index.js](file:///home/pol/Escritorio/gp/services/auth/index.js)
+- [services/users/index.js](file:///home/pol/Escritorio/gp/services/users/index.js)
+- [services/crm/index.js](file:///home/pol/Escritorio/gp/services/crm/index.js)
+- [services/crm/categories.js](file:///home/pol/Escritorio/gp/services/crm/categories.js)
+- [services/analytics/index.js](file:///home/pol/Escritorio/gp/services/analytics/index.js)
+- [services/validation/index.js](file:///home/pol/Escritorio/gp/services/validation/index.js)
+- [api/app.js](file:///home/pol/Escritorio/gp/api/app.js)
+- [CHANGELOG.md](file:///home/pol/Escritorio/gp/CHANGELOG.md)
+- [HISTORY.md](file:///home/pol/Escritorio/gp/HISTORY.md)

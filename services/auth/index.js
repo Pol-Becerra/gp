@@ -9,7 +9,7 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRE || '24h';
 class AuthService {
     async login(email, password) {
         // 1. Check if user exists
-        const result = await db.query('SELECT * FROM usuarios WHERE email = $1', [email]);
+        const result = await db.query('SELECT * FROM fn_auth_get_user_by_email($1)', [email]);
         const user = result.rows[0];
 
         if (!user) {
@@ -34,7 +34,7 @@ class AuthService {
         );
 
         // 4. Update last login
-        await db.query('UPDATE usuarios SET last_login = CURRENT_TIMESTAMP WHERE id = $1', [user.id]);
+        await db.query('SELECT fn_auth_update_last_login($1)', [user.id]);
 
         return {
             token,
