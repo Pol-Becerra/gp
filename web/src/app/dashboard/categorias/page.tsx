@@ -128,6 +128,7 @@ export default function CategoriesPage() {
                         <tr className="bg-white/5 text-gray-400 text-xs font-bold uppercase tracking-widest">
                             <th className="px-6 py-4">Categoría</th>
                             <th className="px-6 py-4">Slug</th>
+                            <th className="px-6 py-4">Color</th>
                             <th className="px-6 py-4">Descripción</th>
                             <th className="px-6 py-4 text-right">Acciones</th>
                         </tr>
@@ -141,7 +142,7 @@ export default function CategoriesPage() {
                             </tr>
                         ) : filteredCategories.length === 0 ? (
                             <tr>
-                                <td colSpan={4} className="px-6 py-10 text-center text-gray-500">
+                                <td colSpan={5} className="px-6 py-10 text-center text-gray-500">
                                     No se encontraron categorías
                                 </td>
                             </tr>
@@ -177,6 +178,13 @@ export default function CategoriesPage() {
                                 </td>
                                 <td className="px-6 py-5 text-sm font-mono text-gray-400">
                                     {category.slug}
+                                </td>
+                                <td className="px-6 py-5">
+                                    <div
+                                        className="w-8 h-8 rounded-full border-2 border-white/20 shadow-inner"
+                                        style={{ backgroundColor: category.color_hex || '#3b82f6' }}
+                                        title={category.color_hex || '#3b82f6'}
+                                    />
                                 </td>
                                 <td className="px-6 py-5 text-sm text-gray-500 max-w-xs truncate">
                                     {category.descripcion || '-'}
