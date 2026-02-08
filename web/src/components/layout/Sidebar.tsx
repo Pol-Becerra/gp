@@ -3,13 +3,14 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Building2, Ticket, BarChart3, Settings, LogOut, Database, Tag } from 'lucide-react';
+import { LayoutDashboard, Building2, Ticket, BarChart3, Settings, LogOut, Database, Tag, Layers } from 'lucide-react';
 
 const menuItems = [
     { icon: LayoutDashboard, label: 'Resumen', href: '/dashboard' },
     { icon: Building2, label: 'Entidades', href: '/dashboard/entidades' },
     { icon: Tag, label: 'Categorías', href: '/dashboard/categorias' },
     { icon: Database, label: 'Admin Scraper', href: '/dashboard/scraper' },
+    { icon: Layers, label: 'Áreas', href: '/dashboard/areas' },
     { icon: Ticket, label: 'Tickets', href: '/dashboard/tareas' },
     { icon: BarChart3, label: 'Estadísticas', href: '/dashboard/analytics' },
 ];

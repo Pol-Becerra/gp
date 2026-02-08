@@ -17,6 +17,8 @@ interface Category {
     created_at: string;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.0.105:4000/api';
+
 export default function CategoriesPage() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
@@ -30,7 +32,7 @@ export default function CategoriesPage() {
     const fetchCategories = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:4000/api/categories');
+            const res = await fetch(`${API_URL}/categories`);
             const data = await res.json();
             setCategories(data);
         } catch (err) {
@@ -48,8 +50,8 @@ export default function CategoriesPage() {
         try {
             const method = editingCategory ? 'PUT' : 'POST';
             const url = editingCategory
-                ? `http://localhost:4000/api/categories/${editingCategory.id}`
-                : 'http://localhost:4000/api/categories';
+                ? `${API_URL}/categories/${editingCategory.id}`
+                : `${API_URL}/categories`;
 
             const res = await fetch(url, {
                 method,
@@ -74,7 +76,7 @@ export default function CategoriesPage() {
     const handleDelete = async (id: string) => {
         if (!confirm('¿Estás seguro de que deseas eliminar esta categoría?')) return;
         try {
-            const res = await fetch(`http://localhost:4000/api/categories/${id}`, {
+            const res = await fetch(`${API_URL}/categories/${id}`, {
                 method: 'DELETE'
             });
             if (res.ok) {
@@ -126,7 +128,7 @@ export default function CategoriesPage() {
             const mainCategories = filtered
                 .filter(c => c.parent_id === null)
                 .sort((a, b) => a.nombre.localeCompare(b.nombre));
-            
+
             mainCategories.forEach(mainCat => {
                 result.push(mainCat);
                 // If this main category is expanded, add its children sorted alphabetically
@@ -142,12 +144,12 @@ export default function CategoriesPage() {
 
         // When showing all, group by parent and sort alphabetically
         const result: Category[] = [];
-        
+
         // Sort main categories alphabetically
         const mainCategories = filtered
             .filter(c => c.parent_id === null)
             .sort((a, b) => a.nombre.localeCompare(b.nombre));
-        
+
         mainCategories.forEach(mainCat => {
             // Add parent
             result.push(mainCat);
@@ -248,110 +250,111 @@ export default function CategoriesPage() {
                             const isMain = category.parent_id === null;
                             const hasKids = hasChildren(category.id);
                             const isExpanded = expandedParents.has(category.id);
-                            
+
                             return (
-                            <motion.tr
-                                key={category.id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: i * 0.05 }}
-                                className={`hover:bg-white/[0.02] transition-colors group ${!isMain ? 'bg-white/[0.02]' : ''}`}
-                            >
-                                <td className="px-6 py-5">
-                                    <div className="flex items-center gap-3">
-                                        {/* Expand/Collapse button for main categories with children - only in "Solo principales" mode */}
-                                        {showOnlyMain && isMain && hasKids ? (
-                                            <button
-                                                onClick={() => toggleExpand(category.id)}
-                                                className="p-1 hover:bg-white/10 rounded transition-colors"
-                                                title={isExpanded ? "Ocultar hijos" : "Ver hijos"}
-                                            >
-                                                {isExpanded ? (
-                                                    <Eye size={18} className="text-blue-400" />
-                                                ) : (
-                                                    <EyeOff size={18} className="text-gray-500" />
-                                                )}
-                                            </button>
-                                        ) : (
-                                            <div className="w-7" /> // Spacer for alignment
-                                        )}
-                                        
-                                        <div
-                                            className="w-10 h-10 rounded-lg flex items-center justify-center text-lg"
-                                            style={{ backgroundColor: `${category.color_hex}15`, color: category.color_hex }}
-                                        >
-                                            {category.icono_url ? (
-                                                <span>{category.icono_url}</span>
+                                <motion.tr
+                                    key={category.id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: i * 0.05 }}
+                                    className={`hover:bg-white/[0.02] transition-colors group ${!isMain ? 'bg-white/[0.02]' : ''}`}
+                                >
+                                    <td className="px-6 py-5">
+                                        <div className="flex items-center gap-3">
+                                            {/* Expand/Collapse button for main categories with children - only in "Solo principales" mode */}
+                                            {showOnlyMain && isMain && hasKids ? (
+                                                <button
+                                                    onClick={() => toggleExpand(category.id)}
+                                                    className="p-1 hover:bg-white/10 rounded transition-colors"
+                                                    title={isExpanded ? "Ocultar hijos" : "Ver hijos"}
+                                                >
+                                                    {isExpanded ? (
+                                                        <Eye size={18} className="text-blue-400" />
+                                                    ) : (
+                                                        <EyeOff size={18} className="text-gray-500" />
+                                                    )}
+                                                </button>
                                             ) : (
-                                                <Tag size={18} />
+                                                <div className="w-7" /> // Spacer for alignment
                                             )}
+
+                                            <div
+                                                className="w-10 h-10 rounded-lg flex items-center justify-center text-lg"
+                                                style={{ backgroundColor: `${category.color_hex}15`, color: category.color_hex }}
+                                            >
+                                                {category.icono_url ? (
+                                                    <span>{category.icono_url}</span>
+                                                ) : (
+                                                    <Tag size={18} />
+                                                )}
+                                            </div>
+                                            <div>
+                                                <div className="font-semibold">{category.nombre}</div>
+                                                {isMain && hasKids && (
+                                                    <div className="text-[10px] text-gray-500">
+                                                        {getChildren(category.id).length} subcategoría(s)
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                        <div>
-                                            <div className="font-semibold">{category.nombre}</div>
-                                            {isMain && hasKids && (
-                                                <div className="text-[10px] text-gray-500">
-                                                    {getChildren(category.id).length} subcategoría(s)
-                                                </div>
-                                            )}
+                                    </td>
+                                    <td className="px-6 py-5">
+                                        {isMain ? (
+                                            <span className="text-xs text-gray-600 bg-gray-800/50 px-2 py-1 rounded flex items-center gap-1 w-fit">
+                                                <FolderTree size={10} /> Principal
+                                            </span>
+                                        ) : (
+                                            <span className="text-xs text-blue-600/70 bg-blue-900/20 px-2 py-1 rounded flex items-center gap-1 w-fit">
+                                                <ChevronRight size={10} /> Subcategoría
+                                            </span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-5 text-sm font-mono text-gray-400">
+                                        {category.slug}
+                                    </td>
+                                    <td className="px-6 py-5">
+                                        <div
+                                            className="w-8 h-8 rounded-full border-2 border-white/20 shadow-inner"
+                                            style={{ backgroundColor: category.color_hex || '#3b82f6' }}
+                                            title={category.color_hex || '#3b82f6'}
+                                        />
+                                    </td>
+                                    <td className="px-6 py-5 text-right">
+                                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                                onClick={() => {
+                                                    setEditingCategory(null);
+                                                    setInitialParentCategory(category);
+                                                    setIsDialogOpen(true);
+                                                }}
+                                                className="p-2 hover:bg-white/5 rounded-lg transition-colors text-gray-400 hover:text-green-400"
+                                                title="Agregar subcategoría"
+                                            >
+                                                <Plus size={18} />
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setEditingCategory(category);
+                                                    setInitialParentCategory(null);
+                                                    setIsDialogOpen(true);
+                                                }}
+                                                className="p-2 hover:bg-white/5 rounded-lg transition-colors text-gray-400 hover:text-blue-400"
+                                                title="Editar"
+                                            >
+                                                <Edit2 size={18} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(category.id)}
+                                                className="p-2 hover:bg-white/5 rounded-lg transition-colors text-gray-400 hover:text-red-400"
+                                                title="Eliminar"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
                                         </div>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-5">
-                                    {isMain ? (
-                                        <span className="text-xs text-gray-600 bg-gray-800/50 px-2 py-1 rounded flex items-center gap-1 w-fit">
-                                            <FolderTree size={10} /> Principal
-                                        </span>
-                                    ) : (
-                                        <span className="text-xs text-blue-600/70 bg-blue-900/20 px-2 py-1 rounded flex items-center gap-1 w-fit">
-                                            <ChevronRight size={10} /> Subcategoría
-                                        </span>
-                                    )}
-                                </td>
-                                <td className="px-6 py-5 text-sm font-mono text-gray-400">
-                                    {category.slug}
-                                </td>
-                                <td className="px-6 py-5">
-                                    <div
-                                        className="w-8 h-8 rounded-full border-2 border-white/20 shadow-inner"
-                                        style={{ backgroundColor: category.color_hex || '#3b82f6' }}
-                                        title={category.color_hex || '#3b82f6'}
-                                    />
-                                </td>
-                                <td className="px-6 py-5 text-right">
-                                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button
-                                            onClick={() => {
-                                                setEditingCategory(null);
-                                                setInitialParentCategory(category);
-                                                setIsDialogOpen(true);
-                                            }}
-                                            className="p-2 hover:bg-white/5 rounded-lg transition-colors text-gray-400 hover:text-green-400"
-                                            title="Agregar subcategoría"
-                                        >
-                                            <Plus size={18} />
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setEditingCategory(category);
-                                                setInitialParentCategory(null);
-                                                setIsDialogOpen(true);
-                                            }}
-                                            className="p-2 hover:bg-white/5 rounded-lg transition-colors text-gray-400 hover:text-blue-400"
-                                            title="Editar"
-                                        >
-                                            <Edit2 size={18} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(category.id)}
-                                            className="p-2 hover:bg-white/5 rounded-lg transition-colors text-gray-400 hover:text-red-400"
-                                            title="Eliminar"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
-                                </td>
-                            </motion.tr>
-                        )}
+                                    </td>
+                                </motion.tr>
+                            )
+                        }
                         )}
                     </tbody>
                 </table>

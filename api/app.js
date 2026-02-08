@@ -11,6 +11,7 @@ require('dotenv').config();
 const { CRMService } = require('../services/crm');
 const { CategoryService } = require('../services/crm/categories');
 const { TaskService } = require('../services/task-management');
+const { AreaService } = require('../services/task-management/areas');
 const db = require('./db');
 
 const app = express();
@@ -22,10 +23,23 @@ console.log(`🏠 [BACKEND] NODE_ENV: ${process.env.NODE_ENV}`);
 const crm = new CRMService();
 const categories = new CategoryService();
 const tasks = new TaskService();
+const areas = new AreaService();
 
 // Middleware
-app.use(cors());
-app.use(helmet());
+// Middleware d
+app.use(cors({
+    origin: '*', // Permitir todas las conexiones. En producción restringir a dominios específicos.
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+// Request logger middleware
+app.use((req, res, next) => {
+    console.log(`[REQUEST] ${req.method} ${req.url}`);
+    next();
+});
+
+// app.use(helmet()); // Temporalmente deshabilitado para debug
 app.use(express.json());
 
 // Routes
@@ -115,11 +129,174 @@ app.delete('/api/categories/:id', async (req, res) => {
     }
 });
 
-// APIs para Tareas
+// APIs para Tickets/Tareas (CRUD completo)
+app.get('/api/tickets', async (req, res) => {
+    try {
+        const filters = {
+            status: req.query.status,
+            priority: req.query.priority,
+            assigned_to: req.query.assigned_to,
+            entity_id: req.query.entity_id,
+            area_id: req.query.area_id,
+            parent_id: req.query.parent_id,
+            limit: req.query.limit ? parseInt(req.query.limit) : undefined
+        };
+        const data = await tasks.getAllTickets(filters);
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/tickets/stats', async (req, res) => {
+    try {
+        const stats = await tasks.getStats();
+        res.json(stats);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/tickets/:id', async (req, res) => {
+    try {
+        const ticket = await tasks.getTicketById(req.params.id);
+        if (!ticket) return res.status(404).json({ error: 'Ticket no encontrado' });
+        res.json(ticket);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/tickets', async (req, res) => {
+    try {
+        const { description, priority, status, entity_id, assigned_to, area_id, parent_id } = req.body;
+        if (!description) {
+            return res.status(400).json({ error: 'La descripción es requerida' });
+        }
+        const ticket = await tasks.createTicket({ description, priority, status, entity_id, assigned_to, area_id, parent_id });
+        res.status(201).json(ticket);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.put('/api/tickets/:id', async (req, res) => {
+    try {
+        const updated = await tasks.updateTicket(req.params.id, req.body);
+        if (!updated) return res.status(404).json({ error: 'Ticket no encontrado' });
+        res.json(updated);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.patch('/api/tickets/:id/status', async (req, res) => {
+    try {
+        const { status } = req.body;
+        if (!status) return res.status(400).json({ error: 'El estado es requerido' });
+        const updated = await tasks.updateTicketStatus(req.params.id, status);
+        if (!updated) return res.status(404).json({ error: 'Ticket no encontrado' });
+        res.json(updated);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/tickets/:id', async (req, res) => {
+    try {
+        const deleted = await tasks.deleteTicket(req.params.id);
+        if (!deleted) return res.status(404).json({ error: 'Ticket no encontrado' });
+        res.json({ success: true, message: 'Ticket eliminado' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Mantener endpoint legacy para compatibilidad
 app.get('/api/tasks', async (req, res) => {
     try {
         const { rows } = await db.query('SELECT * FROM tasks_tickets ORDER BY created_at DESC');
         res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Sub-tickets de un ticket padre
+app.get('/api/tickets/:id/sub-tickets', async (req, res) => {
+    try {
+        const subTickets = await tasks.getSubTickets(req.params.id);
+        res.json(subTickets);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Usuarios disponibles para asignación
+app.get('/api/users/assignable', async (req, res) => {
+    try {
+        const users = await tasks.getUsersForAssignment();
+        res.json(users);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// =============================================
+// APIs para Áreas de Tickets (CRUD completo)
+// =============================================
+app.get('/api/areas', async (req, res) => {
+    try {
+        const includeInactive = req.query.includeInactive === 'true';
+        const data = await areas.getAllAreas(includeInactive);
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/areas/:id', async (req, res) => {
+    try {
+        const area = await areas.getAreaById(req.params.id);
+        if (!area) return res.status(404).json({ error: 'Área no encontrada' });
+        res.json(area);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/areas', async (req, res) => {
+    try {
+        const { nombre, descripcion, color_hex, icono } = req.body;
+        if (!nombre) {
+            return res.status(400).json({ error: 'El nombre es requerido' });
+        }
+        const area = await areas.createArea({ nombre, descripcion, color_hex, icono });
+        res.status(201).json(area);
+    } catch (err) {
+        if (err.message.includes('duplicate key')) {
+            return res.status(400).json({ error: 'Ya existe un área con ese nombre' });
+        }
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.put('/api/areas/:id', async (req, res) => {
+    try {
+        const updated = await areas.updateArea(req.params.id, req.body);
+        if (!updated) return res.status(404).json({ error: 'Área no encontrada' });
+        res.json(updated);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/areas/:id', async (req, res) => {
+    try {
+        const hardDelete = req.query.hard === 'true';
+        const result = await areas.deleteArea(req.params.id, hardDelete);
+        if (!result.success) return res.status(404).json({ error: result.message });
+        res.json(result);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
