@@ -1,32 +1,32 @@
-# Changelog
+# Changelog (Historial de Cambios)
 
-All notable changes to this project will be documented in this file.
+Todos los cambios notables en este proyecto serán documentados en este archivo.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+El formato se basa en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Sin Lanzar]
 
-### Added
+### Añadido
 
-- **Backend**: Created `CategoryService` in `services/crm/categories.js` to handle DB operations.
-- **API**: New endpoints for category management: `GET`, `POST`, `PUT`, `DELETE /api/categories`.
-- **Frontend**: Dashboard page for categories (`/dashboard/categorias`) with full CRUD support.
-- **Frontend**: Interactive `CategoryDialog` component for creating/editing categories.
-- **Documentation**: New skills in `.agents/`: `comitter.md`, `changelog-generator.md`, and `request-tracker.md`.
-- **Database**: Stored procedure `upsert_google_maps_data()` for atomic insert/update operations in Google Maps extraction.
-- **Database**: Stored procedure `clean_data_google_maps()` to truncate all records from data_google_maps table (development utility).
-- **API**: New endpoint `DELETE /api/raw-data/clean` to execute table cleanup.
-- **Frontend**: Added "Limpiar DGM" button in scraper admin page with confirmation modal for development data cleanup.
+- **Backend**: Creado `CategoryService` en `services/crm/categories.js` para manejar operaciones de BD.
+- **API**: Nuevos endpoints para gestión de categorías: `GET`, `POST`, `PUT`, `DELETE /api/categories`.
+- **Frontend**: Página de dashboard para categorías (`/dashboard/categorias`) con soporte CRUD completo.
+- **Frontend**: Componente interactivo `CategoryDialog` para crear/editar categorías.
+- **Documentación**: Nuevas habilidades en `.agents/`: `comitter.md`, `changelog-generator.md` y `request-tracker.md`.
+- **Base de Datos**: Procedimiento almacenado `upsert_google_maps_data()` para operaciones atómicas de inserción/actualización en la extracción de Google Maps.
+- **Base de Datos**: Procedimiento almacenado `clean_data_google_maps()` para vaciar todos los registros de la tabla data_google_maps (utilidad de desarrollo).
+- **API**: Nuevo endpoint `DELETE /api/raw-data/clean` para ejecutar la limpieza de la tabla.
+- **Frontend**: Añadido botón "Limpiar DGM" en la página de administración del scraper con modal de confirmación para limpieza de datos de desarrollo.
 
-- **Data Extraction**: Refactored `services/data-extraction/index.js` to navigate directly to each business URL, eliminating race conditions and ensuring 100% data accuracy.
-- **Frontend**: Added a detailed extraction summary to the scraper modal, including counts for new/updated records and quality metrics (phone/web %).
-- **Frontend**: Implemented a 5-second auto-close countdown in the scraper modal after successful extraction.
-- **API**: Updated `/api/scraper/run` to be synchronous and return detailed extraction statistics.
-- **Database**: Fixed `upsert_google_maps_data()` procedure to handle parameter order and ambiguous column references.
-- **Scripts**: Updated `scripts/run-extraction.js` with improved argument parsing, debug mode, and statistics logging.
+- **Extracción de Datos**: Refactorizado `services/data-extraction/index.js` para navegar directamente a la URL de cada negocio, eliminando condiciones de carrera y asegurando un 100% de precisión en los datos.
+- **Frontend**: Añadido un resumen detallado de extracción al modal del scraper, incluyendo conteos de registros nuevos/actualizados y métricas de calidad (porcentaje de teléfono/web).
+- **Frontend**: Implementada una cuenta regresiva de 5 segundos para el auto-cierre del modal del scraper tras una extracción exitosa.
+- **API**: Actualizado `/api/scraper/run` para ser síncrono y devolver estadísticas detalladas de la extracción.
+- **Base de Datos**: Corregido el procedimiento `upsert_google_maps_data()` para manejar el orden de parámetros y referencias a columnas ambiguas.
+- **Scripts**: Actualizado `scripts/run-extraction.js` con mejoras en el parseo de argumentos, modo de depuración y registro de estadísticas.
 
-### Fixed
+### Corregido
 
-- **UI**: Fixed bug where the "Save" button in the category edit modal failed due to unhandled fields.
-- **UI**: Corrected behavior of the color picker for categories without a pre-defined color.
+- **UI**: Corregido error donde el botón "Guardar" en el modal de edición de categorías fallaba debido a campos no gestionados.
+- **UI**: Corregido el comportamiento del selector de color para categorías sin un color predefinido.
