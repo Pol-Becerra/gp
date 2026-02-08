@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import {
     Layers, Plus, Search, Edit2, Trash2, Loader2, X, Save,
-    MoreVertical, Check, FolderOpen
+    MoreVertical, Check, FolderOpen, Ticket
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 interface AreaData {
     id: string;
@@ -20,6 +21,7 @@ interface AreaData {
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.0.105:4000/api';
 
 export default function AreasPage() {
+    const router = useRouter();
     const [areas, setAreas] = useState<AreaData[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -104,6 +106,10 @@ export default function AreasPage() {
         }
     };
 
+    const handleCreateTicket = (areaId: string) => {
+        router.push(`/dashboard/tareas?area_id=${areaId}&action=new`);
+    };
+
     const filteredAreas = areas.filter(a =>
         a.nombre.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -170,16 +176,25 @@ export default function AreasPage() {
                                                 style={{ color: area.color_hex }}
                                             />
                                         </div>
-                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex gap-1">
+                                            <button
+                                                onClick={() => handleCreateTicket(area.id)}
+                                                className="p-2 text-gray-400 hover:text-green-400 hover:bg-green-500/10 rounded-lg transition-colors"
+                                                title="Crear ticket en esta área"
+                                            >
+                                                <Ticket className="w-4 h-4" />
+                                            </button>
                                             <button
                                                 onClick={() => handleOpenModal(area)}
-                                                className="p-2 text-gray-400 hover:text-white hover:bg-slate-800 rounded-lg"
+                                                className="p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                                title="Editar área"
                                             >
                                                 <Edit2 className="w-4 h-4" />
                                             </button>
                                             <button
                                                 onClick={() => setDeleteConfirm(area.id)}
-                                                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg"
+                                                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                title="Eliminar área"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>

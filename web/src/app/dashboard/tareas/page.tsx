@@ -7,6 +7,7 @@ import {
     ChevronDown, Palette, Layers
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 interface TicketData {
     id: string;
@@ -65,6 +66,8 @@ const statusConfig = {
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.0.105:4000/api';
 
 export default function TicketsPage() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const [tickets, setTickets] = useState<TicketData[]>([]);
     const [stats, setStats] = useState<TicketStats | null>(null);
     const [areas, setAreas] = useState<AreaData[]>([]);
@@ -111,6 +114,28 @@ export default function TicketsPage() {
         };
         loadData();
     }, [filterStatus, filterPriority, filterArea]);
+
+    // Handle query params for creating ticket with pre-selected area
+    useEffect(() => {
+        const areaId = searchParams.get('area_id');
+        const action = searchParams.get('action');
+        
+        if (action === 'new' && areaId) {
+            // Clear query params after reading
+            router.replace('/dashboard/tareas');
+            // Open modal with area pre-selected
+            setEditingTicket(null);
+            setFormData({
+                description: '',
+                priority: 'Medium',
+                status: 'Open',
+                area_id: areaId,
+                assigned_to: '',
+                parent_id: ''
+            });
+            setIsModalOpen(true);
+        }
+    }, [searchParams, router]);
 
     const fetchTickets = async () => {
         setLoading(true);
