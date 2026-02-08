@@ -1,11 +1,11 @@
 ---
 nombre: "Comitter"
-descripción: Realiza cambios en el repositorio de manera estructurada usando Conventional Commits
+descripción: Realiza commits y push en el repositorio de manera estructurada usando Conventional Commits con confirmación interactiva
 ---
 
 # 🚀 Skill: Comitter
 
-Esta skill define el estándar para realizar commits en el repositorio de **GuíaPymes**, siguiendo la especificación de [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
+Esta skill define el estándar para realizar commits y push en el repositorio de **GuíaPymes**, siguiendo la especificación de [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). Incluye flujo de trabajo interactivo que muestra el mensaje del commit y pregunta antes de ejecutar el push.
 
 ## 📌 Formato del Mensaje
 
@@ -52,6 +52,49 @@ El mensaje debe seguir esta estructura:
 ### Refactorización con Breaking Change
 
 `refactor!: simplificar esquema de base de datos v2`
+
+## 🔄 Flujo de Trabajo
+
+### Paso 1: Verificar cambios
+Antes de commitear, verifica el estado del repositorio:
+```bash
+git status
+git diff
+```
+
+### Paso 2: Stage y Commit
+```bash
+git add <archivos>
+git commit -m "<tipo>(<alcance>): <descripción>"
+```
+
+### Paso 3: Mostrar mensaje del commit
+Después de crear el commit, muestra el mensaje generado:
+```
+Commit realizado: <hash> <mensaje>
+```
+
+### Paso 4: Preguntar por el push
+Antes de ejecutar el push, preguntar al usuario:
+> **Commit realizado:** `<hash>` - `<mensaje>`
+>
+> ¿Quieres que ejecute el push? (si/no)
+
+### Paso 5: Ejecutar push (si confirma)
+Si el usuario responde "si":
+```bash
+git push -u origin <rama>
+```
+
+## 📋 Checklist de Commit + Push
+
+- [ ] Verificar archivos modificados
+- [ ] Elegir tipo de commit apropiado
+- [ ] Escribir mensaje descriptivo
+- [ ] Realizar commit
+- [ ] Mostrar mensaje confirmación
+- [ ] Preguntar antes de push
+- [ ] Ejecutar push (si aplica)
 
 ---
 > [!TIP]

@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Frontend**: Dashboard page for categories (`/dashboard/categorias`) with full CRUD support.
 - **Frontend**: Interactive `CategoryDialog` component for creating/editing categories.
 - **Documentation**: New skills in `.agents/`: `comitter.md`, `changelog-generator.md`, and `request-tracker.md`.
+- **Database**: Stored procedure `upsert_google_maps_data()` for atomic insert/update operations in Google Maps extraction.
+
+### Changed
+
+- **Data Extraction**: Refactored `scripts/run-extraction.js` to use the new stored procedure instead of inline SQL, improving maintainability and logging.
 
 ### Fixed
 
