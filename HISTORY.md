@@ -34,3 +34,35 @@ Registro de peticiones y acciones realizadas por el asistente Antigravity.
 - [.agents/request-tracker.md](file:///home/pol/Escritorio/gp/.agents/request-tracker.md)
 - [CHANGELOG.md](file:///home/pol/Escritorio/gp/CHANGELOG.md)
 - [HISTORY.md](file:///home/pol/Escritorio/gp/HISTORY.md)
+
+---
+
+### [2026-02-08 17:40] - Sistema de Autenticación y Gestión de Usuarios
+
+**Petición del Usuario:**
+> "Hagamos el auth y gestor de usuarios. Inicio de sesion con JWT y el crud de usuarios, Roles y Permisos"
+
+**Acciones Realizadas:**
+
+- Implementado sistema de autenticación JWT (Backend AuthService + API Endpoints).
+- Implementado CRUD de usuarios con `bcryptjs` para hashing de contraseñas.
+- Creado middleware de autorización basado en roles para protección de rutas.
+- Desarrollada página de Login moderna con temas oscuros y validación.
+- Desarrollado panel de administración de usuarios en el dashboard.
+- Integrada la lógica de sesión en el componente Sidebar (perfil, logout y permisos de menú).
+- Creado script de utilidad para generar usuarios administradores iniciales.
+
+**Archivos Afectados:**
+
+- [api/app.js](file:///home/pol/Escritorio/gp/api/app.js)
+- [api/middleware/auth.js](file:///home/pol/Escritorio/gp/api/middleware/auth.js)
+- [services/auth/index.js](file:///home/pol/Escritorio/gp/services/auth/index.js)
+- [services/users/index.js](file:///home/pol/Escritorio/gp/services/users/index.js)
+- [web/src/app/layout.tsx](file:///home/pol/Escritorio/gp/web/src/app/layout.tsx)
+- [web/src/context/AuthContext.tsx](file:///home/pol/Escritorio/gp/web/src/context/AuthContext.tsx)
+- [web/src/app/login/page.tsx](file:///home/pol/Escritorio/gp/web/src/app/login/page.tsx)
+- [web/src/app/dashboard/usuarios/page.tsx](file:///home/pol/Escritorio/gp/web/src/app/dashboard/usuarios/page.tsx)
+- [web/src/components/layout/Sidebar.tsx](file:///home/pol/Escritorio/gp/web/src/components/layout/Sidebar.tsx)
+- [scripts/create-admin.js](file:///home/pol/Escritorio/gp/scripts/create-admin.js)
+- [CHANGELOG.md](file:///home/pol/Escritorio/gp/CHANGELOG.md)
+- [HISTORY.md](file:///home/pol/Escritorio/gp/HISTORY.md)

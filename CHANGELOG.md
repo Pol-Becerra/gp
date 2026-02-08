@@ -9,6 +9,14 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Añadido
 
+- **Backend**: Implementado `AuthService` y `UserService` para la gestión de autenticación y usuarios.
+- **Seguridad**: Middleware de autenticación basado en JWT con control de acceso por roles (super_admin, admin, gestor).
+- **API**: Nuevos endpoints para Login (`/api/auth/login`), sesión actual (`/api/auth/me`) y CRUD completo de usuarios (`/api/users`).
+- **Frontend**: `AuthContext` para gestión global de estado de autenticación, persistencia de sesión y redirección automática.
+- **Frontend**: Nueva página de inicio de sesión (`/login`) con diseño moderno y soporte para temas oscuros.
+- **Frontend**: Panel de gestión de usuarios (`/dashboard/usuarios`) permitiendo administración completa de cuentas por parte de administradores.
+- **Frontend**: Integración en Sidebar: visualización de perfil de usuario, botón de cierre de sesión y filtrado de menú por permisos.
+- **Scripts**: Script `create-admin.js` para la creación inicial de usuarios administradores mediante CLI.
 - **Backend**: Creado `CategoryService` en `services/crm/categories.js` para manejar operaciones de BD.
 - **API**: Nuevos endpoints para gestión de categorías: `GET`, `POST`, `PUT`, `DELETE /api/categories`.
 - **Frontend**: Página de dashboard para categorías (`/dashboard/categorias`) con soporte CRUD completo.
