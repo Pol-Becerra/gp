@@ -125,11 +125,23 @@ app.delete('/api/users/:id', authenticateToken, authorizeRoles('super_admin', 'a
 // APIs para Entidades
 app.get('/api/entities', async (req, res) => {
     try {
-        const { has_web } = req.query;
+        const { has_web, limit, offset, search } = req.query;
         const p_has_web = has_web === 'true' ? true : (has_web === 'false' ? false : null);
+        const p_limit = limit ? parseInt(limit) : 50;
+        const p_offset = offset ? parseInt(offset) : 0;
 
-        const { rows } = await db.query('SELECT * FROM fn_crm_get_entities_filtered($1)', [p_has_web]);
-        res.json(rows);
+        const result = await crm.listEntities(p_limit, p_offset, search || null, p_has_web);
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/entities/:id', async (req, res) => {
+    try {
+        const success = await crm.deleteEntity(req.params.id);
+        if (success) res.json({ success: true, message: 'Entidad eliminada' });
+        else res.status(404).json({ success: false, error: 'Entidad no encontrada' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -145,7 +157,203 @@ app.get('/api/entities/:id', async (req, res) => {
     }
 });
 
-// APIs para Categorías
+app.post('/api/entities', async (req, res) => {
+    try {
+        // Basic validation
+        if (!req.body.nombre_legal) {
+            return res.status(400).json({ error: 'Nombre legal es requerido' });
+        }
+        const newEntity = await crm.createEntity(req.body);
+        res.status(201).json(newEntity);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+app.put('/api/entities/:id', async (req, res) => {
+    try {
+        const updated = await crm.updateEntity(req.params.id, req.body);
+        if (!updated) return res.status(404).json({ error: 'Entidad no encontrada' });
+        res.json(updated);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// APIs para Datos Relacionados de Entidades
+
+// 1. Teléfonos
+app.post('/api/entities/:id/phones', async (req, res) => {
+    try {
+        const result = await crm.addPhone(req.params.id, req.body);
+        res.status(201).json(result);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/entities/phones/:id', async (req, res) => {
+    try {
+        const result = await crm.removePhone(req.params.id);
+        if (result.success) res.json({ message: 'Teléfono eliminado' });
+        else res.status(404).json({ error: 'Teléfono no encontrado' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 2. Emails
+app.post('/api/entities/:id/emails', async (req, res) => {
+    try {
+        const result = await crm.addEmail(req.params.id, req.body);
+        res.status(201).json(result);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/entities/emails/:id', async (req, res) => {
+    try {
+        const result = await crm.removeEmail(req.params.id);
+        if (result.success) res.json({ message: 'Email eliminado' });
+        else res.status(404).json({ error: 'Email no encontrado' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 3. Sitios Web
+app.post('/api/entities/:id/websites', async (req, res) => {
+    try {
+        const result = await crm.addWebsite(req.params.id, req.body);
+        res.status(201).json(result);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/entities/websites/:id', async (req, res) => {
+    try {
+        const result = await crm.removeWebsite(req.params.id);
+        if (result.success) res.json({ message: 'Sitio web eliminado' });
+        else res.status(404).json({ error: 'Sitio web no encontrado' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 4. Redes Sociales
+app.post('/api/entities/:id/socials', async (req, res) => {
+    try {
+        const result = await crm.addSocial(req.params.id, req.body);
+        res.status(201).json(result);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/entities/socials/:id', async (req, res) => {
+    try {
+        const result = await crm.removeSocial(req.params.id);
+        if (result.success) res.json({ message: 'Red social eliminada' });
+        else res.status(404).json({ error: 'Red social no encontrada' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 5. Direcciones
+app.post('/api/entities/:id/addresses', async (req, res) => {
+    try {
+        const result = await crm.addAddress(req.params.id, req.body);
+        res.status(201).json(result);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/entities/addresses/:id', async (req, res) => {
+    try {
+        const result = await crm.removeAddress(req.params.id);
+        if (result.success) res.json({ message: 'Dirección eliminada' });
+        else res.status(404).json({ error: 'Dirección no encontrada' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 6. Categorías (Vinculación)
+app.post('/api/entities/:id/categories', async (req, res) => {
+    try {
+        const { category_id, is_primary } = req.body;
+        const result = await crm.linkCategory(req.params.id, category_id, is_primary);
+        res.status(201).json(result);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/entities/:id/categories/:categoryId', async (req, res) => {
+    try {
+        const result = await crm.unlinkCategory(req.params.id, req.params.categoryId);
+        if (result.success) res.json({ message: 'Categoría desvinculada' });
+        else res.status(404).json({ error: 'Vinculación no encontrada' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 7. Etiquetas
+app.get('/api/tags', async (req, res) => {
+    try {
+        const data = await crm.getTags(req.query.aplicable_a);
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/tags', async (req, res) => {
+    try {
+        const result = await crm.createTag(req.body);
+        res.status(201).json(result);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/entities/:id/tags', async (req, res) => {
+    try {
+        const { tag_id } = req.body;
+        const result = await crm.linkTag(req.params.id, tag_id);
+        res.status(201).json(result);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/entities/:id/tags/:tagId', async (req, res) => {
+    try {
+        const result = await crm.unlinkTag(req.params.id, req.params.tagId);
+        if (result.success) res.json({ message: 'Etiqueta desvinculada' });
+        else res.status(404).json({ error: 'Vinculación no encontrada' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 8. Gestores
+app.put('/api/entities/:id/manager', async (req, res) => {
+    try {
+        const { manager_id } = req.body;
+        const result = await crm.assignManager(req.params.id, manager_id);
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// APIs para Categorías (CRUD Principal)
 app.get('/api/categories', async (req, res) => {
     try {
         const data = await categories.getCategories();
