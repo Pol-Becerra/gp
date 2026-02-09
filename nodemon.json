@@ -1,0 +1,15 @@
+{
+    "watch": [
+        "api",
+        "services",
+        "scripts"
+    ],
+    "ignore": [
+        "web",
+        "node_modules",
+        ".next",
+        "dist"
+    ],
+    "ext": "js,json",
+    "delay": "1000"
+}
